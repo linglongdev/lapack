@@ -1,0 +1,59 @@
+Description: Fix build failure related to missing xerbla function
+ Upstream commits 2d9fbdeecca906d7abb89e9cc16b02ed5286298e and
+ 628a2095c24021ab07904e036389ebc4feb3e67a changed the function prototypes in the
+ cblas_f77.h.
+ .
+ However, the F77_xerbla case was not treated in the same way as the others. In
+ particular, the consequence is now that the xerbla function provided by the
+ CBLAS/src/xerbla.c file is never called at runtime (because it is identified as
+ “F77_xerbla” in the symbol table, instead of simply “xerbla”, since F77_xerbla
+ is *not* a macro).
+ .
+ This patch restores the symmetry between xerbla and the other functions.
+ .
+ Without it, the Debian package FTBFS, because we strip the pure Fortran xerbla
+ implementation from the library objects, and we keep only the (otherwise
+ broken) C implementation.
+Author: Sébastien Villemot <sebastien@debian.org>
+Forwarded: https://github.com/Reference-LAPACK/lapack/pull/619
+Last-Update: 2021-09-01
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+--- a/CBLAS/include/cblas_f77.h
++++ b/CBLAS/include/cblas_f77.h
+@@ -527,7 +527,11 @@
+ extern "C" {
+ #endif
+ 
+-void F77_xerbla(FCHAR, void *);
++#ifdef BLAS_FORTRAN_STRLEN_END
++  #define F77_xerbla(...) F77_xerbla_base(__VA_ARGS__, 1)
++#else
++  #define F77_xerbla(...) F77_xerbla_base(__VA_ARGS__)
++#endif
+ void F77_xerbla_base(FCHAR, void *
+    #ifdef BLAS_FORTRAN_STRLEN_END
+       , size_t
+--- a/CBLAS/src/xerbla.c
++++ b/CBLAS/src/xerbla.c
+@@ -10,13 +10,16 @@ void
+ #ifdef HAS_ATTRIBUTE_WEAK_SUPPORT
+ __attribute__((weak))
+ #endif
+-F77_xerbla
++F77_xerbla_base
+ #ifdef F77_CHAR
+-(F77_CHAR F77_srname, void *vinfo)
++(F77_CHAR F77_srname, void *vinfo
+ #else
+-(char *srname, void *vinfo)
++(char *srname, void *vinfo
+ #endif
+-
++#ifdef BLAS_FORTRAN_STRLEN_END
++, size_t len
++#endif
++)
+ {
+ #ifdef F77_CHAR
+    char *srname;

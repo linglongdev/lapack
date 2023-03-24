@@ -1,0 +1,18 @@
+Description: Define a default value for DOCSDIR
+ Otherwise documentation ends up in top-level directory.
+Author: Sébastien Villemot <sebastien@debian.org>
+Forwarded: https://github.com/Reference-LAPACK/lapack/pull/618
+Last-Update: 2021-09-01
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+--- a/INSTALL/make.inc.gfortran
++++ b/INSTALL/make.inc.gfortran
+@@ -79,3 +79,8 @@ CBLASLIB     = $(TOPSRCDIR)/libcblas.a
+ LAPACKLIB    = $(TOPSRCDIR)/liblapack.a
+ TMGLIB       = $(TOPSRCDIR)/libtmglib.a
+ LAPACKELIB   = $(TOPSRCDIR)/liblapacke.a
++
++#  DOCUMENTATION DIRECTORY
++# If you generate html pages (make html), documentation will be placed in $(DOCSDIR)/explore-html
++# If you generate man pages (make man), documentation will be placed in $(DOCSDIR)/man
++DOCSDIR       = $(TOPSRCDIR)/DOCS

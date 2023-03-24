@@ -1,0 +1,47 @@
+package:
+  id: lapack
+  name: lapack
+  version: 3.8.0.1
+  kind: lib
+  description: |
+    lapack.
+
+base:
+  id: org.deepin.base
+  version: 20.5.0
+
+source:
+  kind: git
+  url: https://github.com/deepin-community/lapack.git
+  version: uos
+  commit: bc0809c191d4a43f9f9d6c760d308d5bc289d70c
+  patch:
+  - icamax-izamax-extended-precision.patch
+  - doxygen-downsize.patch
+  - makefile-blas-remove-dep.patch
+  - verbose-tests.patch
+  - xerbla-strlen.patch
+  - docsdir.patch
+variables:
+  extra_args: |
+    -DBUILD_SHARED_LIBS=ON
+
+build:
+  kind: manual
+  manual:
+    configure: |
+      mkdir buildstatic
+      cd buildstatic
+      cmake -DCMAKE_INSTALL_PREFIX=${PREFIX} \
+            -DCMAKE_INSTALL_LIBDIR=lib/${TRIPLET} ..
+      make ${jobs}
+      make install
+
+      mkdir ../buildshared
+      cd ../buildshared
+      cmake -DCMAKE_INSTALL_PREFIX=${PREFIX} \
+            -DCMAKE_INSTALL_LIBDIR=lib/${TRIPLET} \
+            ${extra_args} ..
+      make ${jobs}
+      make install
+
